@@ -1,11 +1,12 @@
 function [xdot] = differentialEquation(t,x)
 %Inputs:
 %t - flight time (s)
-%x = [downrange distance (m), downrange velocity (m/s), altitude (m), vertical velocity (m/s), propellant mass (kg)]
+%x = [downrange distance (m), downrange velocity (m/s), altitude (m), vertical velocity (m/s),
+%     propellant mass (kg), randomized wind speed (m/s)]
 %
 %Outputs:
 %xdot = [downrange velocity (m/s), downrange acceleration (m/s^2) , vertical velocity (m/s),
-%vertical acceleration (m/s^2), mass burn rate (kg/s)]
+%        vertical acceleration (m/s^2), mass burn rate (kg/s), longitudinal dryden wind speed (m/s)]
 
 m_payload = 2.0;                                    %mass of payload (kg)
 payload_altitude = 244;                             %payload deployment altitude (m)
@@ -27,9 +28,9 @@ mu = 18.07E-6;                                      %dynamic viscosity (Pa*s)
 L = 3.5;                                            %rocket length (m)
 R_s = 100E-5;                                       %surface roughness (m)
 
-global turbulence_intensity; 
-global windupper;
-global windlower;
+global turbulence_intensity;                        %declare intensity of turbulence
+global windupper;                                   %declare upper wind speed
+global windlower;                                   %declare lower wind speed 
 global main_altitude;                               %declare main parachute deployment altitude
 global gamma;                                       %declare ratio of specific heats
 global R;                                           %declare gas constant
@@ -105,13 +106,14 @@ end
 
 %State-space representation
 xdot = [x(2)+x(6)*10000;(thrust*sin(launch_angle))/m;x(4);(thrust*cos(launch_angle)-m*g-.5*rho*x(4)^2*C_D*A)/m;-x(5)*thrust/I;0];
+
 %Generate limited bandwidth noise
 a = windlower;
 b = windupper;
 r = (b-a)*rand(1,1)+a;
 
 %State derivative for the dryden gust model
-dgm_ode(isnan(dgm_ode)) = 0;        % Gust
+dgm_ode(isnan(dgm_ode)) = 0;
     if (dgm_ode(2,1) ~= 0)
     xdot(6) =(((dgm_ode(1,1))*r-x(6)))/(dgm_ode(2,1)*1000);
     else

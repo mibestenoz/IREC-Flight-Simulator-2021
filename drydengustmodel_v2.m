@@ -19,13 +19,13 @@ kts2mps = 0.5144; % knots to meters per second
 %
 % intensity classification
 %
-
 light = 1;
 moderate = 2;
 severe = 3;
 
+% W_20ft is the wind speed at 20 feet
 if (light == intensity)
-    W_20ft = 15*kts2mps; % W_20ft is the wind speed at 20 feet
+    W_20ft = 15*kts2mps; 
 elseif (moderate == intensity)
     W_20ft = 30*kts2mps; 
 elseif (severe == intensity)
@@ -49,7 +49,6 @@ if h ~= 0
     sigma_u = (sigma_w)/((0.177 + 0.000823*h)^0.4);
     sigma_v = sigma_u;
     
-    %    L_w = h/2;
     L_u = h/((0.177 + 0.000823*h)^1.2);
     L_v = L_u/2;
     
@@ -59,7 +58,6 @@ if h ~= 0
     sigma_u = sigma_w;
     sigma_v = sigma_u;
     
-    %    L_w = h/2;
     L_u = h;
     L_v = h/2;
     
@@ -68,8 +66,7 @@ if h ~= 0
     sigma_w = 0.1*W_20ft;
     sigma_u = sigma_w;
     sigma_v = sigma_u;
-    
-    %    L_w = 1750/2;        
+         
     L_u = 1750;
     L_v = 1750/2;
     end   

@@ -1,7 +1,7 @@
 clc; clear; close all;
 
-global windupper;
-global windlower;
+global windupper;       %declare upper wind speed
+global windlower;       %declare lower wind speed 
 global max_acceleration;%declare max acceleration
 global m_empty;         %declare unloaded mass of rocket
 global rail_length;     %declare rail length
