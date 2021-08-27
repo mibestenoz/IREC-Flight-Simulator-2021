@@ -1,12 +1,10 @@
 function [xdot] = differentialEquation(t,x)
 %Inputs:
-%t - flight time (s)
-%x = [downrange distance (m), downrange velocity (m/s), altitude (m), vertical velocity (m/s),
-%     propellant mass (kg), randomized wind speed (m/s)]
+%t = flight time (s)
+%x = [downrange distance (m), downrange velocity (m/s), altitude (m), vertical velocity (m/s), propellant mass (kg), randomized wind speed (m/s)]
 %
 %Outputs:
-%xdot = [downrange velocity (m/s), downrange acceleration (m/s^2) , vertical velocity (m/s),
-%        vertical acceleration (m/s^2), mass burn rate (kg/s), longitudinal dryden wind speed (m/s)]
+%xdot = [downrange velocity (m/s), downrange acceleration (m/s^2) , vertical velocity (m/s), vertical acceleration (m/s^2), mass burn rate (kg/s), longitudinal dryden wind speed (m/s)]
 
 m_payload = 2.0;                                    %mass of payload (kg)
 payload_altitude = 244;                             %payload deployment altitude (m)
@@ -17,6 +15,7 @@ s = 0.127;                                          %fin half-span (m)
 cr = 0.381;                                         %fin root chord (m)
 ct = 0;                                             %fin tip chord (m)
 ft = 0.00318;                                       %fin thickness (m)
+fn = 4;                                             %fin number (3 or 4)
 launch_angle = (4)*pi/180;                          %launch angle from vertical (rad)
 C_D_drogue = 1.16;                                  %drogue parachute drag coefficient
 d_drogue = 0.61;                                    %drogue parachute diameter (m)
@@ -61,7 +60,7 @@ dgm_ode = (real(drydengustmodel_v2(x(3),x(2),x(4),turbulence_intensity)));
 l = sqrt(cr^2+(s/2)^2);                              %fin half-chord (m)
 alpha = (x(6)*10000+x(2))/x(4);                      %angle of attack (rad)
 C_N_nose = 2*alpha;
-C_N_fins = alpha*16*(s/d)^2/(1+sqrt(1+(2*l/(cr+ct))^2));
+C_N_fins = alpha*4*fn*(s/d)^2/(1+sqrt(1+(2*l/(cr+ct))^2));
 C_N = C_N_nose + C_N_fins;
 
 %Time (s) and thrust (N) data
