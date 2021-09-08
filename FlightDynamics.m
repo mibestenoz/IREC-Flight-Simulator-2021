@@ -11,6 +11,9 @@ global R;               %declare gas constant
 global T_ground;        %declare temperature on launch pad
 global lapse_rate;      %declare troposphere lapse rate
 global main_altitude;   %declare main parachute deployment altitude
+global cg;              %declare center of gravity
+global cp;              %declare center of pressure
+global d;               %declare fuselage diameter
 
 main_altitude = 198;    %main parachute deployment altitude (m)
 max_acceleration = 0;   %initialize max acceleration (m/s^2)
@@ -23,12 +26,18 @@ gamma = 1.4;            %ratio of specific heats
 R = 287;                %gas constant (J/kg*K)
 T_ground = 292;         %temperature on launch pad (K)
 lapse_rate = 0.0065;    %troposphere lapse rate (K/m)
+cg = 2.15;              %center of gravity from nose (m)
+cp = 2.59;              %center of pressure from nose (m)
+d = 0.14;               %fuselage diameter (m)
 
 %Load time (s) and thrust (N) data
 global time_data;
 time_data = csvread('Simulation Thrust.csv',0,0,[0 0 97 0]);
 global thrust_data;
 thrust_data = csvread('Simulation Thrust.csv',0,1,[0 1 97 1]);
+
+%Calculate static stability margin (cal)
+ss = (cp - cg)/d;
 
 %
 % Initialize upper and lower wind values for bandwidth
@@ -121,4 +130,4 @@ xlabel('Flight Time (s)');
 ylabel('Thrust (lbf)');
 
 %Print mission performance predictions
-fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Vertical Velocity:\t\t\t\t\t%.0f ft/s\nMax Vertical Acceleration:\t\t\t\t%.0f ft/s^2\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nMax Impact Kinetic Energy:\t\t\t\t%.0f ft*lbf\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\n', apogee, max_velocity, max_acceleration, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity);
+fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Vertical Velocity:\t\t\t\t\t%.0f ft/s\nMax Vertical Acceleration:\t\t\t\t%.0f ft/s^2\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nMax Impact Kinetic Energy:\t\t\t\t%.0f ft*lbf\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\nStatic Stability Margin:\t\t\t\t%.2f cal\n', apogee, max_velocity, max_acceleration, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity, ss);
