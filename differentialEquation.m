@@ -9,7 +9,6 @@ function [xdot] = differentialEquation(t,x)
 m_payload = 2.0;                                                            %mass of payload (kg)
 payload_altitude = 244;                                                     %payload deployment altitude (m)
 rho = 1.225;                                                                %air density (kg/m^3)
-d = 0.14;                                                                   %fuselage diameter (m)
 dm = 0.075;                                                                 %motor diameter (m)
 s = 0.127;                                                                  %fin half-span (m)
 cr = 0.381;                                                                 %fin root chord (m)
@@ -39,7 +38,10 @@ global g;                                                                   %dec
 global rail_length;                                                         %declare rail length
 global max_acceleration;                                                    %declare maximum acceleration
 global m_empty;                                                             %declare unloaded mass of rocket
-m = m_empty + x(5);                                                         %full mass of rocket (kg)
+global d;                                                                   %declare fuselage diameter
+
+%Calculate full mass of rocket (kg)
+m = m_empty + x(5);
 
 %Determine reference areas
 A = pi*d^2/4;                                                               %rocket reference area (m^2)
