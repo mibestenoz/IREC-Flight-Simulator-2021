@@ -2,6 +2,7 @@ clc; clear; close all;
 
 global windupper;       %declare upper wind speed
 global windlower;       %declare lower wind speed 
+global turbulence_intensity; %declare turbulence classification
 global max_acceleration;%declare max acceleration
 global m_empty;         %declare unloaded mass of rocket
 global rail_length;     %declare rail length
@@ -39,11 +40,16 @@ thrust_data = csvread('Simulation Thrust.csv',0,1,[0 1 97 1]);
 %Calculate static stability margin (cal)
 ss = (cp - cg)/d;
 
-%
 % Initialize upper and lower wind values for bandwidth
-%
 windupper = 5; 
 windlower = -5;
+
+% Initialize turbulence intensity
+% Choose from: 
+% light = 1
+% moderate = 2
+% severe = 3
+turbulence_intensity = 1;
 
 %Solve equations of motion
 tspan = [0 100];
