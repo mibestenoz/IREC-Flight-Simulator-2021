@@ -1,116 +1,104 @@
-function [xdot] = differentialEquation(t,x)
-%Inputs:
-%t = flight time (s)
-%x = [downrange distance (m), downrange velocity (m/s), altitude (m), vertical velocity (m/s), propellant mass (kg), randomized wind speed (m/s)]
+function [xdot] = differentialEquation(t,x,Rocket, Atmos)
+%% Overview
+% Inputs: 
+% InputVars stores two structs with the parameters:
+%   Rocket - contains all rocket vars including the payload and recovery parameters
+%   Atmos - which containsthe parameters of the atmosphere
+% t - flight time (s)
+% x = [downrange distance (m), downrange velocity (m/s), altitude (m), vertical velocity (m/s),
+%     propellant mass (kg), randomized wind speed (m/s)]
 %
-%Outputs:
-%xdot = [downrange velocity (m/s), downrange acceleration (m/s^2) , vertical velocity (m/s), vertical acceleration (m/s^2), mass burn rate (kg/s), longitudinal dryden wind speed (m/s)]
+% Outputs:
+% xdot = [downrange velocity (m/s), downrange acceleration (m/s^2) , vertical velocity (m/s),
+%        vertical acceleration (m/s^2), mass burn rate (kg/s), longitudinal dryden wind speed (m/s)]
 
-m_payload = 2.0;                                                            %mass of payload (kg)
-payload_altitude = 244;                                                     %payload deployment altitude (m)
-rho = 1.225;                                                                %air density (kg/m^3)
-dm = 0.075;                                                                 %motor diameter (m)
-s = 0.127;                                                                  %fin half-span (m)
-cr = 0.381;                                                                 %fin root chord (m)
-ct = 0;                                                                     %fin tip chord (m)
-ft = 0.00318;                                                               %fin thickness (m)
-fn = 4;                                                                     %fin number (3 or 4)
-launch_angle = (4)*pi/180;                                                  %launch angle from vertical (rad)
-C_D_drogue = 1.16;                                                          %drogue parachute drag coefficient
-d_drogue = 0.61;                                                            %drogue parachute diameter (m)
-C_D_main = 2.20;                                                            %main parachute drag coefficient
-d_main = 2.13;                                                              %main parachute diameter (m)
-windspeed = 5.81152;                                                        %average windspeed (m/s)
-I = 3489;                                                                   %total impuse (N*s)
-mu = 18.07E-6;                                                              %dynamic viscosity (Pa*s)
-L = 3.5;                                                                    %rocket length (m)
-R_s = 100E-5;                                                               %surface roughness (m)
-
-global turbulence_intensity;                                                %declare intensity of turbulence
-global windupper;                                                           %declare upper wind speed
-global windlower;                                                           %declare lower wind speed 
-global main_altitude;                                                       %declare main parachute deployment altitude
-global gamma;                                                               %declare ratio of specific heats
-global R;                                                                   %declare gas constant
-global T_ground;                                                            %declare temperatue on launch pad
-global lapse_rate;                                                          %declare troposphere lapse rate
-global g;                                                                   %declare gravitational acceleration
-global rail_length;                                                         %declare rail length
-global max_acceleration;                                                    %declare maximum acceleration
-global m_empty;                                                             %declare unloaded mass of rocket
-global d;                                                                   %declare fuselage diameter
-
-%Calculate full mass of rocket (kg)
-m = m_empty + x(5);
+%% Initialize ODE parameters 
+%Current Mass of rocket
+m = Rocket.mass_empty + x(5);                                 %full mass of rocket (kg)
 
 %Determine reference areas
-A = pi*d^2/4;                                                               %rocket reference area (m^2)
-A_drogue = pi*d_drogue^2/4;                                                 %drogue parachute area (m^2)
-A_main = pi*d_main^2/4;                                                     %main parachute area (m^2)
-A_motor = pi*dm^2/4;                                                        %motor reference area (m)
+A = pi*Rocket.dia^2/4;                                       %rocket reference area (m^2)
+A_drogue = pi*Rocket.dia_drogue^2/4;                         %drogue parachute area (m^2)
+A_main = pi*Rocket.dia_main^2/4;                             %main parachute area (m^2)
+A_motor = pi*Rocket.dia_motor^2/4;                           %motor reference area (m)
 
 %Determine temperature
-T = T_ground - lapse_rate*x(3);
+T = Atmos.T_ground - Atmos.lapse_rate*x(3);
 
 %Determine Mach number
-M = x(4)/sqrt(gamma*R*T);
-
-% dryden gust model test
-dgm_ode = (real(drydengustmodel_v2(x(3),x(2),x(4),turbulence_intensity)));
+V = sqrt(x(2)^2+x(4)^2);
+M = V/sqrt(Atmos.gamma*Atmos.R*T);
 
 %Normal force coefficient
-l = sqrt(cr^2+(s/2)^2);                                                     %fin half-chord (m)
-alpha = (x(6)*10000+x(2))/x(4);                                             %angle of attack (rad)
-C_N_nose = 2*alpha;                                                         %normal force coefficient due to nose cone
-C_N_fins = alpha*4*fn*(s/d)^2/(1+sqrt(1+(2*l/(cr+ct))^2));                  %normal force coefficient due to fins
-C_N = C_N_nose + C_N_fins;                                                  %total normal force coefficicent
+l = sqrt(Rocket.cr^2+(Rocket.s/2)^2);                        %fin half-chord (m)
+if x(4) == 0 && x(2) == 0
+    alpha = 0;                                               %angle of attack (rad) - u divided by v
+else 
+    alpha = (x(6)+x(2))/x(4);
+end
+C_N_nose = 2*alpha;
+C_N_fins = alpha*16*(Rocket.s/Rocket.dia)^2/(1+sqrt(1+(2*Rocket.length/(Rocket.cr+Rocket.ct))^2));
+C_N = C_N_nose + C_N_fins;
 
-%Time (s) and thrust (N) data
-global time_data;
-global thrust_data;
+% dryden gust model test
+dgm_ode = (real(drydengustmodel_v2(x(3),x(2),x(4),Atmos.turbulence_intensity)));
 
-%Interpolate motor thrust
-if t <= time_data(end)                                                      %motor is still burning
-    thrust = interp1(time_data,thrust_data,t);                              %interpolate thrust (N)
-else                                                                        %after burnout
-    thrust = 0;                                                             %no thrust
+%interpolate motor thrust
+if t <= Rocket.time_data(end)
+    thrust = interp1(Rocket.time_data,Rocket.thrust_data,t);
+else
+    thrust = 0;
 end
 
 %Drag coefficient
-Re = rho*x(4)*L/mu;                                                         %Reynolds number
-Re_cr = 51*(R_s/L)^-1.039;                                                  %surface roughness dependent critical Reynolds number                        
-if Re > Re_cr                                                               %surface roughness effect
-    C_f = (1-0.1*M^2)*(0.032*(R_s/L)^0.2);                                  %friction coefficient
-elseif Re > 10^4                                                            %no surface roughness effect
-    C_f = (1-0.1*M^2)/(1.50*log(Re)-5.6)^2;                                 %friction coefficient
-else                                                                        %Reynolds number negligibly low
-    C_f = 1.48E-2;                                                          %friction coefficient
+Re = Atmos.rho*V*Rocket.length/Atmos.mu;                            %Reynolds number
+Re_cr = 51*(Rocket.R_s/Rocket.length)^-1.039;                          %surface roughness dependent critical Reynolds number
+if Re > Re_cr
+    C_f = (1-0.1*M^2)*(0.032*(Rocket.R_s/Rocket.length)^0.2);          %friction coefficient
+elseif Re > 10^4
+    C_f = (1-0.1*M^2)/(1.50*log(Re)-5.6)^2;
+else
+    C_f = 1.48E-2;
 end
-f_B = L/d;                                                                  %fineness ratio
-cm = (cr+ct)/2;                                                             %fin mean chord (m)
-A_wet = pi*d*L;                                                             %body wetted area
-S_wet = 4*s*cr;                                                             %fins wetted area
-C_D_f = C_f*((1+1/2/f_B)*A_wet + (1+2*ft/cm)*S_wet)/A;                      %friction drag coefficient
-C_D_b = 0.12 + 0.13*M^2;                                                    %base drag coefficient
-Lambda = atan(cr/s);                                                        %fin leading edge angle (rad)
-C_D_FLE = (cos(Lambda))^2*((1-M^2)^-.417-1);                                %fin leading edge drag coefficient
-C_D_F = (4*ft*s/A)*(C_D_FLE+C_D_b);                                         %fin drag coefficient
-if thrust ~= 0                                                              %motor still burning
-    C_D_b = ((A - A_motor)/A)*C_D_b;                                        %motor exhaust correction
+f_B = Rocket.length/Rocket.dia;                                         %fineness ratio
+cm = (Rocket.cr+Rocket.ct)/2;                                           %fin mean chord (m)
+A_wet = pi*Rocket.dia*Rocket.length;                                    %body wetted area
+S_wet = 4*Rocket.s*Rocket.cr;                                           %fins wetted area
+C_D_f = C_f*((1+1/2/f_B)*A_wet + (1+2*Rocket.ft/cm)*S_wet)/A;           %friction drag coefficient
+C_D_b = 0.12 + 0.13*M^2;                                                %base drag coefficient
+Lambda = atan(Rocket.cr/Rocket.s);                                      %fin leading edge angle (rad)
+C_D_FLE = (cos(Lambda))^2*((1-M^2)^-.417-1);                            %fin leading edge drag coefficient
+C_D_F = (4*Rocket.ft*Rocket.s/A)*(C_D_FLE+C_D_b);                       %fin drag coefficient
+if thrust ~= 0
+    C_D_b = ((A - A_motor)/A)*C_D_b;                                    %motor exhaust correction
 end
-C_D = C_D_f + C_D_b + C_D_F;                                                %drag coefficient
+C_D = C_D_f + C_D_b + C_D_F;                                            %drag coefficient
 
-%Deploy payload
-if thrust == 0 && x(3) <= payload_altitude && x(4) < 0                      %payload deployment altitude has been reached during descent
-    m = m - m_payload;                                                      %payload mass ejected
+%deploy payload
+if thrust == 0 && x(3) <= Rocket.payload_altitude && x(4) < 0
+    m = m - Rocket.mass_payload;
 end
 
-%State variable derivatives
-xdot = [x(2)+x(6)*10000;(thrust*sin(launch_angle))/m;x(4);(thrust*cos(launch_angle)-m*g-.5*rho*x(4)^2*C_D*A)/m;-x(5)*thrust/I;0];
+Drag = .5*Atmos.rho*V^2*C_D*A;
+Normal = .5*Atmos.rho*V^2*C_N*A;
 
+%% ODEs for Rocket 
+%State-space representation
+xdot(1,:) = x(2);                                                             %downrange velocity (m/s)
+if x(3) > Rocket.rail_length && x(4) > 0
+    xdot(2,:) = (thrust*sin(Rocket.launch_angle)-Normal*cos(Rocket.launch_angle)-Drag*sin(Rocket.launch_angle))/m;  %downrange acceleration off rail(m/s^2)
+else
+    xdot(2,:) = (thrust*sin(Rocket.launch_angle))/m;                          %downrange acceleration on rail(m/s^2)    
+end
+xdot(3,:) = x(4);                                                             %vertical velocity (m/s)
+xdot(4,:) = (thrust*cos(Rocket.launch_angle)-m*Atmos.g-Drag*cos(Rocket.launch_angle)+Normal*sin(Rocket.launch_angle))/m;    %vertical acceleration (m/s^2)
+xdot(5,:) = -x(5)*thrust/Rocket.I;                                            %mass burn rate (kg/s)
+xdot(6,:) = 0;                                                                %longitudinal dryden wind speed (m/s)
+
+%% Dryden Gust Model
 %Generate limited bandwidth noise
-a = windlower;
-b = windupper;
+a = Atmos.windlower;
+b = Atmos.windupper;
 r = (b-a)*rand(1,1)+a;
 
 %State derivative for the dryden gust model
@@ -121,25 +109,31 @@ dgm_ode(isnan(dgm_ode)) = 0;
     xdot(6) = 0;
     end
     
+%% Corrections 
 %Accounts for delay before liftoff
-if xdot(4) <= 0 && thrust ~= 0                                              %before liftoff
-    xdot(2) = 0;                                                            %no downrange acceleration
-    xdot(4) = 0;                                                            %no vertical acceleration
+if xdot(4) <= 0 && thrust ~= 0
+    xdot(2) = 0;
+    xdot(4) = 0;
 end
+
 %Descent under drogue parachute
-if x(4) <= 0 && thrust == 0                                                 %during descent
-    xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_drogue*A_drogue)/m;                   %vertical acceleration under drogue parachute
-    %Descent under main parachute
-    if x(3) < main_altitude                                                 %main deployment altitude has been reached
-        xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_main*A_main)/m;                   %vertical acceleration under main parachute
-    end
-end
+% if x(4) < 0 && thrust == 0
+%     xdot(4) = (-m*Atmos.g+.5*Atmos.rho*x(4)^2*Rocket.C_D_drogue*A_drogue)/m;
+%     %Descent under main parachute
+%     if x(3) < Rocket.main_altitude
+%         xdot(4) = (-m*Atmos.g+.5*Atmos.rho*x(4)^2*Rocket.C_D_main*A_main)/m;
+%     end
+% end
+
 %Accounts for side force due to wind
-if x(3) > rail_length && x(4) > 0                                           %after launch rail exit during ascent
-    xdot(2) = xdot(2)-.5*rho*x(4)^2*C_N*A;                                  %acceleration due to side force
+
+%Track maximum acceleration
+if xdot(4) > Rocket.max_acceleration && x(4) > 0
+    Rocket.max_acceleration = xdot(4);
 end
-%Track maximum vertical acceleration
-if xdot(4) > max_acceleration && x(4) > 0                                   %new max vertical acceleration
-    max_acceleration = xdot(4);                                             %update max vertical acceleration
+
+%End the flight if below the ground and thrust is 0. 
+if x(3) < -0.001 && thrust ==0
+    xdot(:) = 0;
 end
 end
