@@ -34,11 +34,11 @@ A_main = pi*dia_main^2/4;                               %main parachute area (m^
 A_motor = pi*dia_motor^2/4;                             %motor reference area (m)
 
 %Determine temperature
-T = Atmos.T_ground - Atmos.lapse_rate*x(3);
+T = T_ground - lapse_rate*x(3);
 
 %Determine Mach number
 V = sqrt(x(2)^2+x(4)^2);
-M = V/sqrt(Atmos.gamma*Atmos.R*T);
+M = V/sqrt(gamma*R*T);
 
 %Lift force coefficient
 l = sqrt(cr^2+(s/2)^2);                                 %fin half-chord (m)
@@ -54,7 +54,7 @@ C_L = C_L_nose + C_L_fins;
 % dryden gust model test
 u = x(2)*sin(launch_angle)+x(4)*cos(launch_angle);
 w = x(2)*cos(launch_angle)+x(4)*sin(launch_angle);
-dgm_ode = (real(drydengustmodel_v2(x(3),u,w,Atmos.turbulence_intensity)));
+dgm_ode = (real(drydengustmodel_v2(x(3),u,w,turbulence_intensity)));
 
 %interpolate motor thrust
 if t <= time_data(end)
@@ -64,7 +64,7 @@ else
 end
 
 %Drag coefficient
-Re = Atmos.rho*V*len/Atmos.mu;                          %Reynolds number
+Re = rho*V*len/mu;                          %Reynolds number
 Re_cr = 51*(R_s/len)^-1.039;                            %surface roughness dependent critical Reynolds number
 if Re > Re_cr
     C_f = (1-0.1*M^2)*(0.032*(R_s/len)^0.2);            %friction coefficient
@@ -93,8 +93,8 @@ if thrust == 0 && x(3) <= payload_altitude && x(4) < 0
 end
 
 %Define Drag and Lift Forces
-Drag = .5*Atmos.rho*V^2*C_D*A;
-Lift = .5*Atmos.rho*V^2*C_L*A;
+Drag = .5*rho*V^2*C_D*A;
+Lift = .5*rho*V^2*C_L*A;
 
 %% ODEs for Rocket 
 %State-space representation
@@ -105,14 +105,14 @@ else
     xdot(2,:) = (thrust*sin(launch_angle))/m;                                                        %downrange acceleration on rail(m/s^2)    
 end
 xdot(3,:) = x(4);                                                                                    %vertical velocity (m/s)
-xdot(4,:) = (thrust*cos(launch_angle)-m*Atmos.g-Drag*cos(launch_angle)+Lift*sin(launch_angle))/m;    %vertical acceleration (m/s^2)
+xdot(4,:) = (thrust*cos(launch_angle)-m*g-Drag*cos(launch_angle)+Lift*sin(launch_angle))/m;    %vertical acceleration (m/s^2)
 xdot(5,:) = -x(5)*thrust/I;                                                                          %mass burn rate (kg/s)
 xdot(6,:) = 0;                                                                                       %longitudinal dryden wind speed (m/s)
 
 %% Dryden Gust Model
 %Generate limited bandwidth noise
-a = Atmos.windlower;
-b = Atmos.windupper;
+a = windlower;
+b = windupper;
 r = (b-a)*rand(1,1)+a;
 
 %State derivative for the dryden gust model
@@ -132,10 +132,10 @@ end
 
 %Descent under drogue parachute
 if x(4) < 0 && thrust == 0
-    xdot(4) = (-m*Atmos.g+.5*Atmos.rho*x(4)^2*C_D_drogue*A_drogue)/m;
+    xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_drogue*A_drogue)/m;
     %Descent under main parachute
     if x(3) < main_altitude
-        xdot(4) = (-m*Atmos.g+.5*Atmos.rho*x(4)^2*C_D_main*A_main)/m;
+        xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_main*A_main)/m;
     end
 end
 
