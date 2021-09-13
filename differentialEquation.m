@@ -37,19 +37,19 @@ A_motor = pi*dia_motor^2/4;                             %motor reference area (m
 T = T_ground - lapse_rate*x(3);
 
 %Determine Mach number
-V = sqrt(x(2)^2+x(4)^2);
-M = V/sqrt(gamma*R*T);
+V = sqrt((x(2)+x(6))^2+x(4)^2);
+M = V/sqrt(gam*R*T);
 
-%Lift force coefficient
+%Normal force coefficient
 l = sqrt(cr^2+(s/2)^2);                                 %fin half-chord (m)
-if x(4) == 0 && x(2) == 0
-    alpha = 0;                                          %angle of attack (rad) - u divided by v
+if x(3) < rail_length
+    alpha = 0;                                          %assume alpha is 0 while under rod
 else 
-    alpha = (x(6)+x(2))/x(4);
+    alpha = (x(6)+x(2))/x(4);                           %angle of attack (rad) - u divided by v
 end
-C_L_nose = 2*alpha;
-C_L_fins = alpha*16*(s/dia)^2/(1+sqrt(1+(2*len/(cr+ct))^2));
-C_L = C_L_nose + C_L_fins;
+C_N_nose = 2*alpha;
+C_N_fins = alpha*4*fn*(s/dia)^2/(1+sqrt(1+(2*len/(cr+ct))^2));
+C_N = C_N_nose + C_N_fins;
 
 % dryden gust model test
 u = x(2)*sin(launch_angle)+x(4)*cos(launch_angle);
@@ -64,7 +64,7 @@ else
 end
 
 %Drag coefficient
-Re = rho*V*len/mu;                                      %Reynolds number
+Re = rho*V*len/mew;                                     %Reynolds number
 Re_cr = 51*(R_s/len)^-1.039;                            %surface roughness dependent critical Reynolds number
 if Re > Re_cr                                           %surface roughness effect
     C_f = (1-0.1*M^2)*(0.032*(R_s/len)^0.2);            %friction coefficient
@@ -92,20 +92,20 @@ if thrust == 0 && x(3) <= payload_altitude && x(4) < 0
     m = m - mass_payload;
 end
 
-%Define Drag and Lift Forces
+%Define Drag and Normal Forces
 Drag = .5*rho*V^2*C_D*A;
-Lift = .5*rho*V^2*C_L*A;
+Norm = .5*rho*V^2*C_N*A;
 
 %% ODEs for Rocket 
 %State-space representation
 xdot(1,:) = x(6)+x(2);                                                                               %downrange velocity (m/s)
 if x(3) > rail_length && x(4) > 0
-    xdot(2,:) = (thrust*sin(launch_angle)-Lift*cos(launch_angle)-Drag*sin(launch_angle))/m;          %downrange acceleration off rail(m/s^2)
+    xdot(2,:) = (thrust*sin(launch_angle)-Norm*cos(launch_angle)-Drag*sin(launch_angle+alpha))/m;    %downrange acceleration off rail(m/s^2)
 else
     xdot(2,:) = (thrust*sin(launch_angle))/m;                                                        %downrange acceleration on rail(m/s^2)    
 end
 xdot(3,:) = x(4);                                                                                    %vertical velocity (m/s)
-xdot(4,:) = (thrust*cos(launch_angle)-m*g-Drag*cos(launch_angle)+Lift*sin(launch_angle))/m;    %vertical acceleration (m/s^2)
+xdot(4,:) = (thrust*cos(launch_angle)-m*g-Drag*cos(launch_angle+alpha)+Norm*sin(launch_angle))/m;    %vertical acceleration (m/s^2)
 xdot(5,:) = -x(5)*thrust/I;                                                                          %mass burn rate (kg/s)
 xdot(6,:) = 0;                                                                                       %longitudinal dryden wind speed (m/s)
 

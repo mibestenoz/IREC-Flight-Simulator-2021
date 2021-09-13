@@ -16,6 +16,7 @@ Rocket.s = 0.127;                         %fin half-span (m)
 Rocket.cr = 0.381;                        %fin root chord (m)
 Rocket.ct = 0;                            %fin tip chord (m)
 Rocket.ft = 0.00318;                      %fin thickness (m)
+Rocket.fn = 4;                            %number of fins
 Rocket.dia_motor = 0.075;                 %motor diameter (m)
 Rocket.dia_drogue = 0.61;                 %drogue parachute diameter (m)
 Rocket.dia_main = 2.13;                   %main parachute diameter (m)
@@ -27,7 +28,7 @@ Rocket.C_D_drogue = 1.16;                 %drogue parachute drag coefficient
 Rocket.C_D_main = 2.20;                   %main parachute drag coefficient
 Rocket.R_s = 100E-5;                      %surface roughness (m)
 
-Rocket.rail_length = 12;                  %launch rail length (ft)
+Rocket.rail_length = 8;                  %launch rail length (ft)
 Rocket.launch_angle = (4)*pi/180;         %launch angle from vertical (rad)
 
 %Load motor time (s) and thrust (N) data
@@ -39,12 +40,12 @@ ss = (Rocket.cp-Rocket.cg)/Rocket.dia;
 
 %% Atmospheric Parameters
 Atmos.g = 9.81;                         %gravitational acceleration (m/s^2)
-Atmos.gamma = 1.4;                      %ratio of specific heats
+Atmos.gam = 1.4;                        %ratio of specific heats
 Atmos.R = 287;                          %gas constant (J/kg*K)
 Atmos.T_ground = 292;                   %temperature on launch pad (K)
 Atmos.lapse_rate = 0.0065;              %troposphere lapse rate (K/m)
 Atmos.turbulence_intensity = 1;         %turbulence intensity (1-light,2-moderate,3-severe)
-Atmos.mu = 18.07E-6;                    %dynamic viscosity (Pa*s)
+Atmos.mew = 18.07E-6;                    %dynamic viscosity (Pa*s)
 Atmos.rho = 1.225;                      %air density (kg/m^3)
 
 % Initialize upper and lower wind values for bandwidth
@@ -79,9 +80,9 @@ end
 %Determine temperature throughout launch
 T = T_ground - lapse_rate*y(:,3);
 
-%Determine Mach number, Drag, and Normal force
-V = sqrt(y(:,2).^2+y(:,4).^2);          %Total Velocity
-M = V./sqrt(gamma*R*T);                 %Mach Number 
+%Determine Mach number
+V = sqrt(y(:,2).^2+y(:,4).^2);        %Total Velocity
+M = V./sqrt(gam*R*T);                 %Mach Number 
 
 %Calculate ground hit vertical kinetic energy (J)
 KE = .5*mass_aft*V(end).^2;
@@ -178,4 +179,24 @@ xlabel('Flight Time (s)');
 ylabel('Angle of Attack (rad)');
 
 %Print mission performance predictions
-fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Velocity:\t\t\t\t\t\t\t%.0f ft/s\nMax Acceleration:\t\t\t\t\t\t%.0f ft/s^2\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nGround Impact Kinetic Energy:\t\t\t\t\t%.0f ft*lb\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\nStatic Stability Margin:\t\t\t\t%.2f cal\n', apogee, max_velocity, max_acceleration, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity,ss);
+fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Velocity:\t\t\t\t\t\t\t%.0f ft/s\nMax Acceleration:\t\t\t\t\t\t%.0f ft/s^2\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nGround Impact Kinetic Energy:\t\t\t%.0f ft*lb\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\nStatic Stability Margin:\t\t\t\t%.2f cal\n', apogee, max_velocity, max_acceleration, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity,ss);
+
+%simulate and average 10 flights
+% altitudes = []
+% figure()
+% hold on
+% tic
+% for ii = 1:10
+%     [t,y] = ode45(@(t,y) differentialEquation(t,y,Rocket, Atmos), tspan, x0)
+%     %Plot altitude
+%     plot(t,y(:,3).*3.28084);   
+%     altitudes(ii)=max(y(:,3))*3.28084;
+% end
+% toc
+% xlabel('Flight Time (s)');
+% ylabel('Altitude (ft)')
+% for ii = 1:10
+%     fprintf('Altitude #%g: %g ft \n',ii,altitudes(ii))
+% end
+% fprintf('Mean Altitudes: %g ft',mean(altitudes))
+    
