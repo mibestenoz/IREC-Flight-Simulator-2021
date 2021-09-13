@@ -64,13 +64,13 @@ else
 end
 
 %Drag coefficient
-Re = rho*V*len/mu;                          %Reynolds number
+Re = rho*V*len/mu;                                      %Reynolds number
 Re_cr = 51*(R_s/len)^-1.039;                            %surface roughness dependent critical Reynolds number
-if Re > Re_cr
+if Re > Re_cr                                           %surface roughness effect
     C_f = (1-0.1*M^2)*(0.032*(R_s/len)^0.2);            %friction coefficient
-elseif Re > 10^4
+elseif Re > 10^4                                        %no surface roughness effect
     C_f = (1-0.1*M^2)/(1.50*log(Re)-5.6)^2;
-else
+else                                                    %Reynolds number negligibly low
     C_f = 1.48E-2;
 end
 f_B = len/dia;                                          %fineness ratio
@@ -125,17 +125,17 @@ dgm_ode(isnan(dgm_ode)) = 0;
     
 %% Corrections 
 %Accounts for delay before liftoff
-if xdot(4) <= 0 && thrust ~= 0
-    xdot(2) = 0;
-    xdot(4) = 0;
+if xdot(4) <= 0 && thrust ~= 0                              %before liftoff
+    xdot(2) = 0;                                            %no downrange acceleration
+    xdot(4) = 0;                                            %no vertical acceleration
 end
 
 %Descent under drogue parachute
-if x(4) < 0 && thrust == 0
-    xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_drogue*A_drogue)/m;
+if x(4) < 0 && thrust == 0                                  %during descent
+    xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_drogue*A_drogue)/m;   %vertical acceleration under drogue parachute
     %Descent under main parachute
-    if x(3) < main_altitude
-        xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_main*A_main)/m;
+    if x(3) < main_altitude                                 %main deployment altitude has been reached
+        xdot(4) = (-m*g+.5*rho*x(4)^2*C_D_main*A_main)/m;   %vertical acceleration under main parachute
     end
 end
 
