@@ -49,8 +49,8 @@ Atmos.rho = 1.225;                      %air density (kg/m^3)
 
 % Initialize upper and lower wind values for bandwidth
 Atmos.windspeed = 5.8115;   %Average windspeed (m/s)( (+) for into the wind, (-) for against the wind) 
-Atmos.windupper = 5;
-Atmos.windlower = -5;
+Atmos.windupper = 10;
+Atmos.windlower = 0;
 
 %% ODE Solver 
 %Solve equations of motion
