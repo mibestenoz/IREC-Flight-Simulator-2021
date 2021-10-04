@@ -3,14 +3,14 @@ function [xdot] = differentialEquation(t,x,Rocket,Atmos)
 % Inputs: 
 % t - flight time (s)
 % x = [downrange distance (m), downrange velocity (m/s), altitude (m), vertical velocity (m/s),
-%     propellant mass (kg), randomized wind speed (m/s)]
+%     propellant mass (kg), randomized wind speed (m/s), pitch angle from vertical (rad), pitch rate (rad/s)]
 % Two structs with input parameters:
 %   Rocket - contains all rocket vars including the payload and recovery parameters
 %   Atmos - which contains the parameters of the atmosphere and wind
 %
 % Outputs:
 % xdot = [downrange velocity (m/s), downrange acceleration (m/s^2) , vertical velocity (m/s),
-%        vertical acceleration (m/s^2), mass burn rate (kg/s), longitudinal dryden wind speed (m/s)]
+%        vertical acceleration (m/s^2), mass burn rate (kg/s), longitudinal dryden wind speed (m/s), pitch rate (rad/s), pitch acceleration (rad/s^2)]
 
 %% Initialize ODE parameters 
 %Dynamically load variables from struct 
@@ -50,7 +50,7 @@ end
 %Normal force coefficient
 l = sqrt((cr/2)^2+s^2);                                 %half-span at fin half-chord (m)
 if x(4) >= 0
-    alpha = atan((x(2)-x(6))/x(4))-launch_angle;
+    alpha = atan((x(2)-x(6))/x(4))-x(7);
 else    
     alpha = atan((x(2)-x(6))/-x(4));
 end
@@ -59,8 +59,8 @@ C_N_fins = alpha*4*fn*(s/dia)^2/(1+sqrt(1+(2*l/(cr+ct))^2));
 C_N = C_N_nose + C_N_fins;
 
 % dryden gust model test
-u = x(2)*sin(launch_angle)+x(4)*cos(launch_angle);
-w = x(2)*cos(launch_angle)+x(4)*sin(launch_angle);
+u = x(2)*sin(x(7))+x(4)*cos(x(7));
+w = x(2)*cos(x(7))+x(4)*sin(x(7));
 dgm_ode = (real(drydengustmodel_v2(x(3),u,w,turbulence_intensity)));
 
 %Drag coefficient
@@ -103,15 +103,18 @@ Norm = .5*rho*V^2*C_N*A;
 %State-space representation
 xdot(1) = x(2);                                                                                    %downrange velocity (m/s)
 if x(3) > cos(launch_angle)*rail_length && x(4) > 0
-    xdot(2) = (thrust*sin(launch_angle)-Norm*cos(launch_angle)-Drag*sin(launch_angle+alpha))/m;    %downrange acceleration off rail(m/s^2)
-    xdot(4) = (thrust*cos(launch_angle)-m*g-Drag*cos(launch_angle+alpha)+Norm*sin(launch_angle))/m;%vertical acceleration off rail (m/s^2)
+    xdot(2) = (thrust*sin(x(7))-Norm*cos(x(7))-Drag*sin(x(7)+alpha))/m;    %downrange acceleration off rail(m/s^2)
+    xdot(4) = (thrust*cos(x(7))-m*g-Drag*cos(x(7)+alpha)+Norm*sin(x(7)))/m;%vertical acceleration off rail (m/s^2)
+    xdot(8) = (cp-cg)*(Norm+Drag*sin(alpha))/MoI;
 else
     xdot(2) = (thrust*sin(launch_angle)-Drag*cos(alpha)*sin(launch_angle))/m;                      %downrange acceleration on rail(m/s^2)   
     xdot(4) = (thrust*cos(launch_angle)-m*g-Drag*cos(alpha)*cos(launch_angle))/m;                  %vertical acceleration on rail (m/s^2)
+    xdot(8) = 0;
 end
 xdot(3) = x(4);                                                                                    %vertical velocity (m/s)
 xdot(5) = -x(5)*thrust/I;                                                                          %mass burn rate (kg/s)
 xdot(6) = 0;                                                                                       %longitudinal dryden wind speed (m/s)
+xdot(7) = x(8);
 xdot = xdot';
 %% Dryden Gust Model
 %Generate limited bandwidth noise

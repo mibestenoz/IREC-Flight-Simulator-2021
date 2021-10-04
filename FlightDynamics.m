@@ -6,6 +6,7 @@ Rocket.mass_propellant = 2.066;           %mass of propellant (kg)
 Rocket.mass_aft = 6.23;                   %mass of aft section (kg)
 Rocket.mass_payload = 2.01;               %mass of payload (kg)
 Rocket.main_altitude = 198;               %main parachute deployment altitude (m)
+Rocket.MoI = 22.0;                        %longitudinal moment of inertia (kg*m^2)
 
 Rocket.payload_altitude = 244;            %payload deployment altitude (m)
 
@@ -28,7 +29,7 @@ Rocket.cp = 2.59;                         %center of pressure from nose (m)
 Rocket.I = 3489;                          %total impuse (N*s)
 Rocket.C_D_drogue = 1.16;                 %drogue parachute drag coefficient
 Rocket.C_D_main = 2.20;                   %main parachute drag coefficient
-Rocket.R_s = 100E-5;                      %surface roughness (m)
+Rocket.R_s = 71E-5;                       %surface roughness (m)
 
 Rocket.rail_length = 2.44;                %launch rail length (m)
 Rocket.launch_angle = (5)*pi/180;         %launch angle from vertical (rad)
@@ -58,7 +59,7 @@ Atmos.windlower = -5.8115;
 %% ODE Solver 
 %Solve equations of motion
 tspan = [0 100];                                                            %Time span
-x0 = [0;0;0;0;Rocket.mass_propellant;Atmos.windspeed];                      %Initial Conditions
+x0 = [0;0;0;0;Rocket.mass_propellant;Atmos.windspeed;Rocket.launch_angle;0];%Initial Conditions
 [t,y] = ode45(@(t,y) differentialEquation(t,y,Rocket,Atmos),tspan,x0);      %ODE function
 
 %% Mission Analysis
@@ -100,7 +101,7 @@ KE = KE*0.737562;
 thrust_data = thrust_data*0.224809;
 
 %Calculate angle of attack (deg)
-alpha = 180/pi*(atan((y (:,2)-y(:,6))./y(:,4))-launch_angle);
+alpha = 180/pi*(atan((y (:,2)-y(:,6))./y(:,4))-y(:,7));
 
 %Determine recovery velocities (ft/s)
 for mm = 1:length(t)
@@ -139,40 +140,46 @@ descent_time = t(end) - t(mm);
 %% Plot Results
 %Plot altitude
 figure()
-subplot(2,3,1)
+subplot(3,3,1)
 plot(t,y(:,3));
 xlabel('Flight Time (s)');
 ylabel('Altitude (ft)');
 
 %Plot vertical velocity
-subplot(2,3,2)
+subplot(3,3,2)
 plot(t,y(:,4));
 xlabel('Flight Time (s)');
 ylabel('Vertical Velocity (ft/s)');
 
 %Plot thrust curve
-subplot(2,3,3)
+subplot(3,3,3)
 plot(time_data,thrust_data);
 xlabel('Flight Time (s)');
 ylabel('Thrust (lbf)');
 
 %Plot wind velocity
-subplot(2,3,4)
+subplot(3,3,4)
 plot(t,y(:,6));
 xlabel('Flight Time (s)');
 ylabel('Wind Speed (ft/s)');
 
 %Plot Mach number
-subplot(2,3,5)
+subplot(3,3,5)
 plot(t,M)
 xlabel('Flight Time (s)')
 ylabel('Mach Number')
 
 %Plot angle of attack 
-subplot(2,3,6)
+subplot(3,3,6)
 plot(t(1:mm-1),alpha(1:mm-1))
 xlabel('Flight Time (s)');
 ylabel('Angle of Attack (deg)');
+
+%Plot pitch angle
+subplot(3,3,7)
+plot(t(1:apogee_index),180/pi*y(1:apogee_index,7))
+xlabel('Flight Time (s)');
+ylabel('Pitch Angle (deg)');
 
 %Print mission performance predictions
 fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Vertical Velocity:\t\t\t\t\t%.0f ft/s\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nMax Impact Kinetic Energy:\t\t\t\t%.0f ft*lbf\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\nStatic Stability Margin:\t\t\t\t%.2f cal\n', apogee, max_velocity, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity,ss);
