@@ -76,6 +76,8 @@ end
 %Remove data after landing
 for ii = 1:length(t)
     if y(ii,3) < 0 && y(ii,4) < 0
+        t = t(1:ii-1);
+        y = y(1:ii-1,:);
         break;
     end
 end
