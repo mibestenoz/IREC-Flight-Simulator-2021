@@ -16,7 +16,7 @@ Rocket.cr = 0.305;                    %fin root chord (m)
 Rocket.ct = 0.152;                    %fin tip chord (m)
 Rocket.ft = 0.00476;                  %fin thickness (m)
 Rocket.fn = 3;                        %number of fins
-Rocket.Lambda = (32.3)*pi/180;          %fin sweep angle (rad)
+Rocket.Lambda = (32.3)*pi/180;        %fin sweep angle (rad)
 Rocket.rbn = 2;                       %number of rail buttons
 Rocket.rbA = 1.32E-4;                 %frontal area of rail button (m^2)
 Rocket.rbC_D = 0.3;                   %rail button drag coefficient
@@ -191,6 +191,14 @@ ylabel('Pitch Angle (deg)');
 %Print results
 fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Vertical Velocity:\t\t\t\t\t%.0f ft/s\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nMax Impact Kinetic Energy:\t\t\t\t%.0f ft*lbf\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\nStatic Stability Margin:\t\t\t\t%.2f cal\n', apogee, max_velocity, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity,ss);
 
+%Safety checks
+[lbsdrogue,lbsmain] = DeploymentForce(Rocket,Atmos); %parachute deployment forces (lbf)
+Vf = FinFlutterVelocity(Rocket,Atmos);               %fin flutter velocity (ft/s)
+%Verify max velocity does not exceed fin flutter velocity
+if Vf < max_velocity
+    fprintf('WARNING: Fins are fluttering! Fin Flutter Velocity: %g fps is lower than the Max Velocity: %g fps!', Vf,max_velocity)
+end
+
 %Simulate and average 100 flights
 % altitudes = []
 % figure()
@@ -209,4 +217,3 @@ fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Vertical Velocity:\t\t\t\t\t%.0f 
 %     fprintf('Altitude #%g: %g ft \n',ii,altitudes(ii))
 % end
 % fprintf('Mean Altitudes: %g ft',mean(altitudes))
-    
