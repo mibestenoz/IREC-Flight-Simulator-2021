@@ -86,9 +86,6 @@ if thrust ~= 0
     C_D_b = ((A - A_motor)/A)*C_D_b;                    %base drag coefficient during burn
 end
 C_D_P = rbC_D*rbn*rbA/A;                                %parasitic drag coefficient
-if M > 0.8
-    f_N = nose_length/dia;                              %nose cone fineness ratio
-end
 C_D = C_D_f + C_D_b + C_D_F + C_D_P;                    %total drag coefficient
 
 %Deploy payload
@@ -113,7 +110,7 @@ else
     xdot(8) = 0;                                                                    %pitch acceleration on rail (rad/s^2)
 end
 xdot(3) = x(4);                                                                     %vertical velocity (m/s)
-xdot(5) = -x(5)*thrust/I;                                                           %mass burn rate (kg/s)
+xdot(5) = -mass_propellant*thrust/I;                                                           %mass burn rate (kg/s)
 xdot(7) = x(8);                                                                     %pitch rate (rad/s)                                                                    
 xdot = xdot';                                                                       %state derivative column vector
 %% Dryden Gust Model

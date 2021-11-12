@@ -1,5 +1,5 @@
 clc; clear; close all;
-
+global mprop;
 %% Rocket Design Parameters 
 %Rocket inertial parameters
 Rocket.mass_empty = 15.87;            %unloaded mass of rocket (kg)
@@ -22,7 +22,6 @@ Rocket.rbA = 1.32E-4;                 %frontal area of rail button (m^2)
 Rocket.rbC_D = 0.3;                   %rail button drag coefficient
 Rocket.R_s = 0.00002;                 %surface roughness (m)
 Rocket.dia_motor = 0.098;             %motor diameter (m)
-Rocket.nose_length = 0.762;           %nose cone length (m)
 
 %Rocket parachute parameters
 Rocket.dia_drogue = 1.22;             %drogue parachute diameter (m)
