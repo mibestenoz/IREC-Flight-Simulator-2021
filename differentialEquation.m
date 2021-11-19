@@ -31,7 +31,7 @@ cg = (cg_loaded*(mass_empty+mass_propellant) - cg_propellant*(mass_propellant-x(
 cg_dry = (cg_loaded*(mass_empty+mass_propellant) - cg_propellant*(mass_propellant))/(mass_empty);       %center of gravity from nose at burnout (m)
 
 %rocket longitudinal moment of inertia (kg*m^2)
-MoI = MoI_dry + x(5)*(cg_propellant-cg_dry)^2;
+MoI = MoI_dry + mass_empty*(cg-cg_dry)^2 + x(5)*(cg_propellant-cg)^2;
 
 %Determine reference areas
 A = pi*dia^2/4;                                         %rocket reference area (m^2)
