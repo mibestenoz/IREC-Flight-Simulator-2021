@@ -1,12 +1,13 @@
 clc; clear; close all;
-global mprop;
+
 %% Rocket Design Parameters 
 %Rocket inertial parameters
 Rocket.mass_empty = 15.87;            %unloaded mass of rocket (kg)
 Rocket.mass_propellant = 4.03;        %mass of propellant (kg)
 Rocket.mass_aft = 5.11;               %mass of aft section (kg)
 Rocket.mass_payload = 0;              %mass of payload (kg)
-Rocket.MoI = 12.16;                   %longitudinal moment of inertia (kg*m^2)
+Rocket.MoI_dry = 12.16;               %longitudinal moment of inertia at burnout (kg*m^2)
+Rocket.cg_propellant = 2.20;          %propellant center of gravity from nose (m)
 
 %Rocket dimensions, fin parameters, and rail button parameters
 Rocket.len = 2.49;                    %rocket length (m)
@@ -34,7 +35,7 @@ Rocket.payload_altitude = 0;          %payload deployment altitude (m)
 %Rocket launch rail and stability parameters
 Rocket.rail_length = 3.66 ;           %launch rail length (m)
 Rocket.launch_angle = (6)*pi/180;     %launch angle from vertical (rad)
-Rocket.cg = 1.72;                     %center of gravity from nose (m)
+Rocket.cg_loaded = 1.72;              %loaded center of gravity from nose (m)
 Rocket.cp = 1.97;                     %center of pressure from nose (m)
 
 %Motor parameters
@@ -43,8 +44,8 @@ Rocket.time_data = all_data(:,1);               %time during burn (s)
 Rocket.thrust_data = all_data(:,2);             %motor thrust (N)
 Rocket.I = 7002;                                %total impuse (N*s)
 
-%Calculate static stability margin (cal)
-ss = (Rocket.cp-Rocket.cg)/Rocket.dia;
+%Calculate launch static stability margin (cal)
+ss = (Rocket.cp-Rocket.cg_loaded)/Rocket.dia;
 
 %% Atmospheric Parameters
 Atmos.g = 9.81;                         %gravitational acceleration (m/s^2)

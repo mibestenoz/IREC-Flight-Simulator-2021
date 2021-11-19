@@ -26,6 +26,13 @@ end
 %Mass of loaded rocket (kg)
 m = mass_empty + x(5);
 
+%rocket center of gravity from nose
+cg = (cg_loaded*(mass_empty+mass_propellant) - cg_propellant*(mass_propellant-x(5)))/(mass_empty+x(5)); %instantaneous center of gravity from nose (m)
+cg_dry = (cg_loaded*(mass_empty+mass_propellant) - cg_propellant*(mass_propellant))/(mass_empty);       %center of gravity from nose at burnout (m)
+
+%rocket longitudinal moment of inertia (kg*m^2)
+MoI = MoI_dry + x(5)*(cg_propellant-cg_dry)^2;
+
 %Determine reference areas
 A = pi*dia^2/4;                                         %rocket reference area (m^2)
 A_drogue = pi*dia_drogue^2/4;                           %drogue parachute reference area (m^2)
