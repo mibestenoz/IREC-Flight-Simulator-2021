@@ -15,12 +15,11 @@ function [xdot] = differentialEquation(t,x,Rocket,Atmos)
 %Dynamically load variables from struct 
 names = fieldnames(Rocket);
 for i=1:length(names)
-    eval([names{i} '=Rocket.' names{i}; ])
+    eval([names{i} '=Rocket.' names{i} ';']);
 end
-
 names = fieldnames(Atmos);
 for ii=1:length(names)
-   eval([names{ii} '=Atmos.' names{ii}; ]) 
+    eval([names{ii} '=Atmos.' names{ii} ';']);
 end
 
 %Mass of loaded rocket (kg)

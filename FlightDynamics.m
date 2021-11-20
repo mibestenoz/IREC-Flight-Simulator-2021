@@ -70,7 +70,7 @@ Atmos.windlower = -3.8;
 
 %% ODE Solver 
 %Solve equations of motion
-tspan = [0:.0001:300];                                                            %simulation time span (s)
+tspan = [0:.0013:300];                                                            %simulation time span (s)
 x0 = [0;0;0;0;Rocket.mass_propellant;Atmos.windspeed;Rocket.launch_angle;0];     %initial conditions
 [t,y] = ode45(@(t,y) differentialEquation(t,y,Rocket,Atmos),tspan,x0);           %solve ODE
 
@@ -78,11 +78,11 @@ x0 = [0;0;0;0;Rocket.mass_propellant;Atmos.windspeed;Rocket.launch_angle;0];    
 %Load variables from struct
 names = fieldnames(Rocket);
 for i=1:length(names)
-eval([names{i} '=Rocket.' names{i};]);
+    eval([names{i} '=Rocket.' names{i} ';']);
 end
 names = fieldnames(Atmos);
 for ii=1:length(names)
-eval([names{ii} '=Atmos.' names{ii};]);
+    eval([names{ii} '=Atmos.' names{ii} ';']);
 end
 
 %Remove data after landing
