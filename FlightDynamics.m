@@ -23,6 +23,7 @@ Rocket.rbA = 1.32E-4;                 %frontal area of rail button (m^2)
 Rocket.rbC_D = 0.3;                   %rail button drag coefficient
 Rocket.R_s = 0.00002;                 %surface roughness (m)
 Rocket.dia_motor = 0.098;             %motor diameter (m)
+Rocket.nose_length = 0.762;           %nose cone length (m)
 
 %Rocket parachute parameters
 Rocket.dia_drogue = 1.22;             %drogue parachute diameter (m)
@@ -44,6 +45,11 @@ Rocket.time_data = all_data(:,1);               %time during burn (s)
 Rocket.thrust_data = all_data(:,2);             %motor thrust (N)
 Rocket.I = 7002;                                %total impuse (N*s)
 
+%Tangent ogive nose cone transonic wave drag data at fineness ratio of 3
+all_data = readmatrix('Transonic Wave Drag.csv'); %load wave drag data
+Rocket.Mach_data = all_data(:,1);                 %Mach number
+Rocket.C_D_data = all_data(:,2);                  %wave drag coefficient
+
 %Calculate launch static stability margin (cal)
 ss = (Rocket.cp-Rocket.cg_loaded)/Rocket.dia;
 
@@ -64,7 +70,7 @@ Atmos.windlower = -3.8;
 
 %% ODE Solver 
 %Solve equations of motion
-tspan = [0:.009:300];                                                            %simulation time span (s)
+tspan = [0:.0001:300];                                                            %simulation time span (s)
 x0 = [0;0;0;0;Rocket.mass_propellant;Atmos.windspeed;Rocket.launch_angle;0];     %initial conditions
 [t,y] = ode45(@(t,y) differentialEquation(t,y,Rocket,Atmos),tspan,x0);           %solve ODE
 

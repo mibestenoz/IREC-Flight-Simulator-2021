@@ -93,7 +93,16 @@ if thrust ~= 0
     C_D_b = ((A - A_motor)/A)*C_D_b;                    %base drag coefficient during burn
 end
 C_D_P = rbC_D*rbn*rbA/A;                                %parasitic drag coefficient
-C_D = C_D_f + C_D_b + C_D_F + C_D_P;                    %total drag coefficient
+if M > 0.8
+    f_N = nose_length/dia;                              %nose cone fineness ratio
+    C_D_N_3 = interp1(Mach_data,C_D_data,M);            %tangent ogive nose cone pressure drag coefficient with fineness ratio 3
+    b = log(C_D_stag/C_D_N_3)/log(4);                   %nose cone pressure drag shape parameter
+    C_D_N = C_D_stag/(f_N+1)^b;                         %transonic nose cone pressure drag coefficient
+else
+    C_D_N = 0;                                          %subsonic nose cone pressure drag coefficient
+end
+
+C_D = C_D_f + C_D_b + C_D_F + C_D_P + C_D_N;            %total drag coefficient
 
 %Deploy payload
 if thrust == 0 && x(3) < payload_altitude && x(4) < 0
