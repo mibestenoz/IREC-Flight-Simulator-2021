@@ -16,6 +16,8 @@ float g_x;
 float g_y;
 float g_z;
 
+unsigned long myTime;
+
 int chipSelect = 4; //CS pin for the SD card reader
 File mySensorData; //Data object that will be overwritten with sensor data
 
@@ -28,6 +30,7 @@ void setup() {
 }
 
 void loop() {
+
 imu::Vector<3> acc = IMU.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
 imu::Vector<3> gyr = IMU.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
@@ -39,25 +42,13 @@ g_x = gyr.x();
 g_y = gyr.y();
 g_z = gyr.z();
 
-mySensorData = SD.open("IMUData.txt",FILE_WRITE); //Open SensorData.txt on SD Card
+myTime = millis();
+mySensorData = SD.open("test3.txt",FILE_WRITE); //Open SensorData.txt on SD Card
 
 if(mySensorData) { //only writes data if data file opened successfully
-Serial.print("acc in x: ");
-Serial.print(a_x);
-Serial.print("acc in y: ");
-Serial.print(a_y);
-Serial.print("acc in z: ");
-Serial.println(a_z);
-
-Serial.print("gyr in x: ");
-Serial.print(g_x);
-Serial.print("gyr in y: ");
-Serial.print(g_y);
-Serial.print("gyr in z: ");
-Serial.println(g_z);
-
-delay(1000); //delay between readings
-
+delay(10); //delay between readings
+mySensorData.print(myTime); //write time value 
+mySensorData.print(",");
 mySensorData.print(a_x); //write ax value to SD card
 mySensorData.print(",");
 mySensorData.print(a_y); //write ay value to SD card

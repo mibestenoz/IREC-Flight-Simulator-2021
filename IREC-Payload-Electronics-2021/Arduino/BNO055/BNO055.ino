@@ -106,10 +106,10 @@ theta = (thetaG)*.95 + (thetaM)*.05;
 phi = (phiG)*.95 + (phiM)*.05;
 
 //printing calibration values
-//Serial.print(accel); Serial.print(",");
+Serial.print(accel); Serial.print(",");
 Serial.print(gyro); Serial.print(",");
-//Serial.print(mg); Serial.print(",");
-//Serial.print(system); Serial.print(",");
+Serial.print(mg); Serial.print(",");
+Serial.print(system); Serial.print(",");
 
 //printing vectored integrated angular velocity based on gyroscope
 //Serial.print(theta); Serial.print(","); 
