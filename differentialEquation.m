@@ -25,11 +25,11 @@ end
 %Mass of loaded rocket (kg)
 m = mass_empty + x(5);
 
-%rocket center of gravity from nose
+%Rocket center of gravity from nose
 cg = (cg_loaded*(mass_empty+mass_propellant) - cg_propellant*(mass_propellant-x(5)))/(mass_empty+x(5)); %instantaneous center of gravity from nose (m)
 cg_dry = (cg_loaded*(mass_empty+mass_propellant) - cg_propellant*(mass_propellant))/(mass_empty);       %center of gravity from nose at burnout (m)
 
-%rocket longitudinal moment of inertia (kg*m^2)
+%Rocket longitudinal moment of inertia (kg*m^2)
 MoI = MoI_dry + mass_empty*(cg-cg_dry)^2 + x(5)*(cg_propellant-cg)^2;
 
 %Determine reference areas
@@ -38,8 +38,9 @@ A_drogue = pi*dia_drogue^2/4;                           %drogue parachute refere
 A_main = pi*dia_main^2/4;                               %main parachute reference area (m^2)
 A_motor = pi*dia_motor^2/4;                             %motor reference area (m^2)
 
-%Air temperature (K)
-T = T_ground - lapse_rate*x(3);
+%Air state
+T = T_ground - lapse_rate*x(3);                         %air temperature (K)
+rho = 101290*(T/288.08)^5.256/R/T;                      %air density (kg/m^3)
 
 %Determine Mach number
 V = sqrt((x(2)-x(6))^2+x(4)^2);                         %freestream velocity (m/s)
@@ -92,7 +93,7 @@ if thrust ~= 0
     C_D_b = ((A - A_motor)/A)*C_D_b;                    %base drag coefficient during burn
 end
 C_D_P = rbC_D*rbn*rbA/A;                                %parasitic drag coefficient
-if M > 0.8
+if M > 0.8 && M < 1.2
     f_N = nose_length/dia;                              %nose cone fineness ratio
     C_D_N_3 = interp1(Mach_data,C_D_data,M);            %tangent ogive nose cone pressure drag coefficient with fineness ratio 3
     b = log(C_D_stag/C_D_N_3)/log(4);                   %nose cone pressure drag shape parameter

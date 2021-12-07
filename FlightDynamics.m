@@ -2,12 +2,12 @@ clc; clear; close all;
 
 %% Rocket Design Parameters 
 %Rocket inertial parameters
-Rocket.mass_empty = 15.87;            %unloaded mass of rocket (kg)
+Rocket.mass_empty = 16.08;            %unloaded mass of rocket (kg)
 Rocket.mass_propellant = 4.03;        %mass of propellant (kg)
 Rocket.mass_aft = 5.11;               %mass of aft section (kg)
 Rocket.mass_payload = 0;              %mass of payload (kg)
-Rocket.MoI_dry = 12.16;               %longitudinal moment of inertia at burnout (kg*m^2)
-Rocket.cg_propellant = 2.20;          %propellant center of gravity from nose (m)
+Rocket.MoI_dry = 11.96;               %longitudinal moment of inertia at burnout (kg*m^2)
+Rocket.cg_propellant = 2.19;          %propellant center of gravity from nose (m)
 
 %Rocket dimensions, fin parameters, and rail button parameters
 Rocket.len = 2.49;                    %rocket length (m)
@@ -36,8 +36,8 @@ Rocket.payload_altitude = 0;          %payload deployment altitude (m)
 %Rocket launch rail and stability parameters
 Rocket.rail_length = 3.66 ;           %launch rail length (m)
 Rocket.launch_angle = (6)*pi/180;     %launch angle from vertical (rad)
-Rocket.cg_loaded = 1.72;              %loaded center of gravity from nose (m)
-Rocket.cp = 1.97;                     %center of pressure from nose (m)
+Rocket.cg_loaded = 1.71;              %loaded center of gravity from nose (m)
+Rocket.cp = 1.98;                     %center of pressure from nose (m)
 
 %Motor parameters
 all_data = readmatrix('Simulation Thrust.csv'); %load motor performance data
@@ -61,7 +61,6 @@ Atmos.T_ground = 288;                   %temperature on launch pad (K)
 Atmos.lapse_rate = 0.0065;              %troposphere lapse rate (K/m)
 Atmos.turbulence_intensity = 1;         %turbulence intensity (1 - light, 2 - moderate, 3 - severe)
 Atmos.dv = 18.07E-6;                    %dynamic viscosity (Pa*s)
-Atmos.rho = 1.225;                      %air density (kg/m^3)
 
 %Initialize upper and lower wind values for bandwidth
 Atmos.windspeed = -3.8;                 %average windspeed (m/s) ( (-) for rocket launching into the wind )
@@ -70,7 +69,7 @@ Atmos.windlower = -3.8;
 
 %% ODE Solver 
 %Solve equations of motion
-tspan = [0:.0013:300];                                                            %simulation time span (s)
+tspan = [0:0.1:300];                                                            %simulation time span (s)
 x0 = [0;0;0;0;Rocket.mass_propellant;Atmos.windspeed;Rocket.launch_angle;0];     %initial conditions
 [t,y] = ode45(@(t,y) differentialEquation(t,y,Rocket,Atmos),tspan,x0);           %solve ODE
 
