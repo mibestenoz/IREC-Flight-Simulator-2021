@@ -39,12 +39,6 @@
    HX710B Connections I2C
    ======================
    
-   GPS Connections 
-   ===============
-   Connect TX
-   Connect RX
-   Connect Vin to 3.3-5V DC
-   Connect GROUND to common ground
  */
  
 //BMP380

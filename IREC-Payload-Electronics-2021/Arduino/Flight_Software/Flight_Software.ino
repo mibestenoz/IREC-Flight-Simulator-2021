@@ -1,7 +1,16 @@
-//load relevant libraries
-#include <Wire.h> 
-#include<SD.h> 
-#include<SPI.h>
+/* TROPOGATOR ROCKET FLIGHT COMPUTER
+ * Datalogging program
+ * Written by Wiler Sanchez
+ */
+
+/*
+ * CHANGELOG
+ * 12-06-2021 Created program, adapted from LabRatMatt's code from Youtube
+ */
+//---------load relevant libraries---------
+#include <Wire.h>             //Wire library for I2C interface
+#include<SD.h>                //SD card library
+#include<SPI.h>               //SPI connection library
 #include <Adafruit_Sensor.h> 
 #include <Adafruit_BNO055.h>
 #include "Adafruit_BMP3XX.h"
@@ -21,7 +30,7 @@
    Connect Vin to 3.3-5V DC
    Connect GROUND to common ground
 
-   SD Connnections SPI
+   SD Card Connnections SPI
    ===================
    Connect CLK to digital 13
    Connect DO to digital 12
@@ -40,7 +49,7 @@
 #include <utility/imumaths.h>
 #include <math.h>
 
-//BMP
+//BMP380
 #define BMP_SCK 13
 #define BMP_MISO 12
 #define BMP_MOSI 11
@@ -51,50 +60,135 @@
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 #define BMP388_SAMPLERATE_DELAY_MS (100)
 
+//relevent pins
+#define chipSelect 4
+#define YELLOW_LED_PIN 9
+
 //creating sensor objects
 Adafruit_BNO055 IMU = Adafruit_BNO055(55, 0x28);
 Adafruit_BMP3XX bmp;
 
+//declare file
+File mySensorData;
 
-//selecting pins for SD
-int chipSelect = 4; 
-File mySensorData; 
+//declare general variables
+bool cal = FALSE; 
+//int MODE = 0;           //initialized mode to zero
+//int t = 0;              //create timestamp value
+//int samplerate = 10;    //specified sampling rate
 
 void setup() {
-
 //
 //turning everything on
 //
+//slight delay before turning on serial monitor
+delay(5000);
 Serial.begin(115200); 
 
-IMU.begin();
-
-bmp.begin_I2C();
-  
 pinMode(10, OUTPUT);
+pinMode(YELLOW_LED_PIN, OUTPUT);
 SD.begin(chipSelect);
 
-delay(1000);
+//
+// welcome message
+//
+Serial.println("-------------------------------------------");
+Serial.println("--------TROPOGATOR FLIGHT COMPUTER---------");
+Serial.println("-------------------------------------------");
+delay(500);
 
+//
+// initializing components
+//
+Serial.println("Commencing initialization sequence...");
+delay(500);
 
+//initialize BNO055
+if(IMU.begin()){
+  Serial.println("BNO055 initialized");
+  delay(2000);
 }
 
-void loop() {
+//initialize BMP388
+//if(bmp.begin_I2C()){
+//  Serial.println("BMP388 initialized");
+//}
+
+//initialize SD Card
+if(SD.begin(chipSelect)){
+  Serial.println("SD card initialized");
+  delay(2000);
+  if(!SD.exists("data.txt")){
+//clear SD data
+  if(SD.exists("data.txt")){
+    if(SD.remove("data.txt") == true){
+      Serial.println("Previous data cleared");
+    }
+  }
+Serial.println("No data detected in SD card");
+delay(2000);
+}
+}
+Serial.println("Initialization sequence completed!");
+delay(2000);
 
 //
 //calibration
 //
 uint8_t system, gyro, accel, mg = 0;
 IMU.getCalibration(&system, &gyro, &accel, &mg);
-if ((accel < 3) && (gyro < 3) && (mg < 3) && (system < 3)) {
-  Serial.print(accel); Serial.print(gyro); 
-  Serial.print(mg); Serial.println(system);
+Serial.println("Commencing calibration sequence...");
+delay(2000);
+
+while(!cal) {
+  Serial.print("Gyroscope: "); Serial.println(gyro);
+  delay(500);
+  if (gyro == 3){
+    Serial.println("Gyroscope calibration completed");
+    delay(2000);
+    cal = TRUE;
+  } 
+}
+cal = FALSE;
+
+while(!cal) {
+  Serial.print("Magnetometer: "); Serial.println(mg);
+  delay(500);
+  if (mg == 3){
+    Serial.println("Magnetometer calibration completed");
+    delay(2000);
+    cal = TRUE;
+  } 
+}
+cal = FALSE;
+
+while(!cal) {
+  Serial.print("Accelerometer: "); Serial.println(accel);
+  delay(500);
+  if (accel == 3){
+    Serial.println("Accelerometer calibration completed");
+    delay(2000);
+    cal = TRUE;
+  } 
+}
+cal = FALSE;
+
+if (system == 3) {
+Serial.println("Calibration sequence completed!");
+Serial.println("Computer is flight ready");
 }
 
 //
 //open file on sd
 //
 mySensorData = SD.open("Flight_Data.txt",FILE_WRITE);
+Serial.println("SD Card file 'Flight_Data.txt' opened");
+
+
+digitalWrite(9, HIGH);
+}
+
+void loop() {
 
 //
 //raw data from imu
@@ -113,12 +207,6 @@ mySensorData.print(acc.z()); mySensorData.print(", ");
 mySensorData.print(gyr.x()); mySensorData.print(", "); 
 mySensorData.print(gyr.y()); mySensorData.print(", "); 
 mySensorData.print(gyr.z()); mySensorData.print(", ");
-mySensorData.print(mag.x()); mySensorData.print(", "); 
-mySensorData.print(mag.y()); mySensorData.print(", "); 
-mySensorData.print(mag.z()); mySensorData.print(", ");
-mySensorData.print(bmp.temperature); mySensorData.print(", "); 
-mySensorData.print(bmp.pressure); mySensorData.print(", ");
-mySensorData.print(bmp.readAltitude(SEALEVELPRESSURE_HPA)); mySensorData.print(", ");
 mySensorData.close();
 }
 

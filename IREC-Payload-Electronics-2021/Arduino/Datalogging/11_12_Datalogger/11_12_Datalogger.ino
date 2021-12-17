@@ -43,10 +43,11 @@ g_y = gyr.y();
 g_z = gyr.z();
 
 myTime = millis();
-mySensorData = SD.open("test3.txt",FILE_WRITE); //Open SensorData.txt on SD Card
+mySensorData = SD.open("test6.txt",FILE_WRITE); //Open SensorData.txt on SD Card
 
 if(mySensorData) { //only writes data if data file opened successfully
 delay(10); //delay between readings
+Serial.println("working");
 mySensorData.print(myTime); //write time value 
 mySensorData.print(",");
 mySensorData.print(a_x); //write ax value to SD card

@@ -1,4 +1,4 @@
-/*MODEL ROCKET FLIGHT COMPUTER
+  /*MODEL ROCKET FLIGHT COMPUTER
  * Datalogging program
  * Written by Matt Minogue, also known as @LabRatMatt on YouTube and Instructables
  * Note that much of the IMU Code derives from Jeff Rowberg's MPU6050 Demo Code, the copyright statement and liscense are included
