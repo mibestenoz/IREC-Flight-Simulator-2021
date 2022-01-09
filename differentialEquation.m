@@ -22,6 +22,9 @@ for ii=1:length(names)
     eval([names{ii} '=Atmos.' names{ii} ';']);
 end
 
+%Declare drag coefficient vector
+global CDvector;
+
 %Mass of loaded rocket (kg)
 m = mass_empty + x(5);
 
@@ -103,6 +106,10 @@ else
 end
 
 C_D = C_D_f + C_D_b + C_D_F + C_D_P + C_D_N;            %total drag coefficient
+
+if C_D < 1
+    CDvector = [CDvector C_D];                          %record drag coefficient
+end
 
 %Deploy payload
 if thrust == 0 && x(3) < payload_altitude && x(4) < 0

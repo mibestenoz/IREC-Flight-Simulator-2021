@@ -67,6 +67,10 @@ Atmos.windspeed = -4.47;                %average windspeed (m/s) ( (-) for rocke
 Atmos.windupper = -3.8;
 Atmos.windlower = -3.8;
 
+%Initialize drag coefficient vector
+global CDvector;
+CDvector = [];
+
 %% ODE Solver 
 %Solve equations of motion
 tspan = [0:0.1:300];                                                            %simulation time span (s)
@@ -92,6 +96,9 @@ for ii = 1:length(t)
         break;
     end
 end
+
+%Determine mean drag coefficient
+C_D_average = mean(CDvector);
 
 %Air temperature (K) during flight
 T = T_ground - lapse_rate*y(:,3);
@@ -194,7 +201,7 @@ xlabel('Flight Time (s)');
 ylabel('Pitch Angle (deg)');
 
 %Print results
-fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Vertical Velocity:\t\t\t\t\t%.0f ft/s\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nMax Impact Kinetic Energy:\t\t\t\t%.0f ft*lbf\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\nStatic Stability Margin:\t\t\t\t%.2f cal\n', apogee, max_velocity, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity,ss);
+fprintf('Apogee:\t\t\t\t\t\t\t\t\t%.0f ft\nMax Vertical Velocity:\t\t\t\t\t%.0f ft/s\nMax Mach Number:\t\t\t\t\t\t%.3f\nLiftoff Thrust:\t\t\t\t\t\t\t%.0f lbf\nThrust-to-Weight Ratio:\t\t\t\t\t%.2f\nRail Exit Velocity:\t\t\t\t\t\t%.0f ft/s\nMax Impact Kinetic Energy:\t\t\t\t%.0f ft*lbf\nDrift Radius:\t\t\t\t\t\t\t%.0f ft\nDescent Time:\t\t\t\t\t\t\t%.0f s\nDrogue Parachute Deployment Velocity:\t%.0f ft/s\nMain Parachute Deployment Velocity:\t\t%.0f ft/s\nTerminal Velocity:\t\t\t\t\t\t%.0f ft/s\nStatic Stability Margin:\t\t\t\t%.2f cal\nAverage Drag Coefficient:\t\t\t\t%.2f\n', apogee, max_velocity, max_Mach, liftoff_thrust, t2wr, rail_exit_velocity, KE, drift_radius, descent_time, drogue_deployment_velocity, main_deployment_velocity, terminal_velocity,ss,C_D_average);
 
 %Safety checks
 [lbsdrogue,lbsmain] = DeploymentForce(Rocket,Atmos); %parachute deployment forces (lbf)
