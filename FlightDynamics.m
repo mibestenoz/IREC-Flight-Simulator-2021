@@ -2,28 +2,28 @@ clc; clear; close all;
 
 %% Rocket Design Parameters 
 %Rocket inertial parameters
-Rocket.mass_empty = 16.08;            %unloaded mass of rocket (kg)
-Rocket.mass_propellant = 4.03;        %mass of propellant (kg)
-Rocket.mass_aft = 5.11;               %mass of aft section (kg)
+Rocket.mass_empty = 21.0;             %unloaded mass of rocket (kg)
+Rocket.mass_propellant = 3.77;        %mass of propellant (kg)
+Rocket.mass_aft = 6.67;               %mass of aft section (kg)
 Rocket.mass_payload = 0;              %mass of payload (kg)
-Rocket.MoI_dry = 11.96;               %longitudinal moment of inertia at burnout (kg*m^2)
-Rocket.cg_propellant = 2.19;          %propellant center of gravity from nose (m)
+Rocket.MoI_dry = 21.0;                %longitudinal moment of inertia at burnout (kg*m^2)
+Rocket.cg_propellant = 2.95;          %propellant center of gravity from nose (m)
 
 %Rocket dimensions, fin parameters, and rail button parameters
-Rocket.len = 2.49;                    %rocket length (m)
+Rocket.len = 3.25;                    %rocket length (m)
 Rocket.dia = 0.157;                   %fuselage diameter (m)
-Rocket.s = 0.203;                     %fin height (m)
-Rocket.cr = 0.305;                    %fin root chord (m)
-Rocket.ct = 0.152;                    %fin tip chord (m)
-Rocket.ft = 0.00476;                  %fin thickness (m)
+Rocket.s = 0.165;                     %fin height (m)
+Rocket.cr = 0.381;                    %fin root chord (m)
+Rocket.ct = 0.172;                    %fin tip chord (m)
+Rocket.ft = 0.00406;                  %fin thickness (m)
 Rocket.fn = 3;                        %number of fins
-Rocket.Lambda = (32.3)*pi/180;        %fin sweep angle (rad)
+Rocket.Lambda = (45)*pi/180;          %fin sweep angle (rad)
 Rocket.rbn = 2;                       %number of rail buttons
 Rocket.rbA = 1.32E-4;                 %frontal area of rail button (m^2)
 Rocket.rbC_D = 0.3;                   %rail button drag coefficient
 Rocket.R_s = 0.00002;                 %surface roughness (m)
 Rocket.dia_motor = 0.098;             %motor diameter (m)
-Rocket.nose_length = 0.762;           %nose cone length (m)
+Rocket.nose_length = 0.784;           %nose cone length (m)
 
 %Rocket parachute parameters
 Rocket.dia_drogue = 1.22;             %drogue parachute diameter (m)
@@ -34,16 +34,16 @@ Rocket.main_altitude = 183;           %main parachute deployment altitude (m)
 Rocket.payload_altitude = 0;          %payload deployment altitude (m)
 
 %Rocket launch rail and stability parameters
-Rocket.rail_length = 3.66 ;           %launch rail length (m)
+Rocket.rail_length = 5.18 ;           %launch rail length (m)
 Rocket.launch_angle = (6)*pi/180;     %launch angle from vertical (rad)
-Rocket.cg_loaded = 1.71;              %loaded center of gravity from nose (m)
-Rocket.cp = 1.98;                     %center of pressure from nose (m)
+Rocket.cg_loaded = 2.14;              %loaded center of gravity from nose (m)
+Rocket.cp = 2.39;                     %center of pressure from nose (m)
 
 %Motor parameters
 all_data = readmatrix('Simulation Thrust.csv'); %load motor performance data
 Rocket.time_data = all_data(:,1);               %time during burn (s)
 Rocket.thrust_data = all_data(:,2);             %motor thrust (N)
-Rocket.I = 7002;                                %total impuse (N*s)
+Rocket.I = 8093;                                %total impuse (N*s)
 
 %Tangent ogive nose cone transonic wave drag data at fineness ratio of 3
 all_data = readmatrix('Transonic Wave Drag.csv'); %load wave drag data
@@ -57,13 +57,13 @@ ss = (Rocket.cp-Rocket.cg_loaded)/Rocket.dia;
 Atmos.g = 9.81;                         %gravitational acceleration (m/s^2)
 Atmos.gam = 1.4;                        %ratio of specific heats
 Atmos.R = 287;                          %gas constant (J/kg*K)
-Atmos.T_ground = 288;                   %temperature on launch pad (K)
+Atmos.T_ground = 303;                   %temperature on launch pad (K)
 Atmos.lapse_rate = 0.0065;              %troposphere lapse rate (K/m)
 Atmos.turbulence_intensity = 1;         %turbulence intensity (1 - light, 2 - moderate, 3 - severe)
-Atmos.dv = 18.07E-6;                    %dynamic viscosity (Pa*s)
+Atmos.dv = 18.6E-6;                     %dynamic viscosity (Pa*s)
 
 %Initialize upper and lower wind values for bandwidth
-Atmos.windspeed = -3.8;                 %average windspeed (m/s) ( (-) for rocket launching into the wind )
+Atmos.windspeed = -4.47;                %average windspeed (m/s) ( (-) for rocket launching into the wind )
 Atmos.windupper = -3.8;
 Atmos.windlower = -3.8;
 

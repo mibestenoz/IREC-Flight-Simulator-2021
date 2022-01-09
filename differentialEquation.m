@@ -165,3 +165,4 @@ end
 if x(3) <= 0 && thrust == 0
     xdot(:) = 0;                                                    %state derivatives after landing
 end
+xdot(6) = 0;
