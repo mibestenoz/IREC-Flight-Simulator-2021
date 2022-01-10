@@ -43,7 +43,7 @@ A_motor = pi*dia_motor^2/4;                             %motor reference area (m
 
 %Air state
 T = T_ground - lapse_rate*x(3);                         %air temperature (K)
-rho = 101290*(T/288.08)^5.256/R/T;                      %air density (kg/m^3)
+rho = P_ground*(T/T_ground)^5.256/R/T;                  %air density (kg/m^3)
 
 %Determine Mach number
 V = sqrt((x(2)-x(6))^2+x(4)^2);                         %freestream velocity (m/s)
@@ -107,7 +107,7 @@ end
 
 C_D = C_D_f + C_D_b + C_D_F + C_D_P + C_D_N;            %total drag coefficient
 
-if C_D < 1
+if abs(C_D) < 1
     CDvector = [CDvector C_D];                          %record drag coefficient
 end
 
