@@ -2,11 +2,11 @@ clc; clear; close all;
 
 %% Rocket Design Parameters 
 %Rocket inertial parameters
-Rocket.mass_empty = 21.0;             %unloaded mass of rocket (kg)
+Rocket.mass_empty = 19.1;             %unloaded mass of rocket (kg)
 Rocket.mass_propellant = 3.77;        %mass of propellant (kg)
-Rocket.mass_aft = 6.67;               %mass of aft section (kg)
-Rocket.mass_payload = 0;              %mass of payload (kg)
-Rocket.MoI_dry = 21.0;                %longitudinal moment of inertia at burnout (kg*m^2)
+Rocket.mass_aft = 13.6;               %mass of aft section (kg)
+Rocket.mass_payload = 4.89;              %mass of payload (kg)
+Rocket.MoI_dry = 19.3;                %longitudinal moment of inertia at burnout (kg*m^2)
 Rocket.cg_propellant = 2.95;          %propellant center of gravity from nose (m)
 
 %Rocket dimensions, fin parameters, and rail button parameters
@@ -31,12 +31,12 @@ Rocket.dia_main = 2.44;               %main parachute diameter (m)
 Rocket.C_D_drogue = 0.97;             %drogue parachute drag coefficient
 Rocket.C_D_main = 2.20;               %main parachute drag coefficient
 Rocket.main_altitude = 183;           %main parachute deployment altitude (m)
-Rocket.payload_altitude = 0;          %payload deployment altitude (m)
+Rocket.payload_altitude = 183;          %payload deployment altitude (m)
 
 %Rocket launch rail and stability parameters
 Rocket.rail_length = 5.18 ;           %launch rail length (m)
 Rocket.launch_angle = (6)*pi/180;     %launch angle from vertical (rad)
-Rocket.cg_loaded = 2.14;              %loaded center of gravity from nose (m)
+Rocket.cg_loaded = 2.13;              %loaded center of gravity from nose (m)
 Rocket.cp = 2.39;                     %center of pressure from nose (m)
 
 %Motor parameters
