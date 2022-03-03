@@ -72,6 +72,8 @@ Atmos.windlower = -3.8;
 global CDvector;
 CDvector = [];
 
+mode = input('Run:\n(1) Detailed Simulation\n(2) Sensitivity Analysis\n');
+if mode == 1
 %% ODE Solver 
 %Solve equations of motion
 tspan = [0:0.1:300];                                                            %simulation time span (s)
@@ -211,22 +213,42 @@ Vf = FinFlutterVelocity(Rocket,Atmos);               %fin flutter velocity (ft/s
 if Vf < max_velocity
     fprintf('WARNING: Fins are fluttering! Fin Flutter Velocity: %g fps is lower than the Max Velocity: %g fps!', Vf,max_velocity)
 end
+elseif mode == 2
+%% 
+%Sensitivity Analysis
+tspan = [0:0.1:300];                                                                %simulation time span (s)
+deviation = .5;                                                                     %fraction deviation from nominal value
+parameterName = 'Rocket.ft';                                                        %name of varying parameter
+samples = 5;                                                                        %number of sample values tested
 
-%Simulate and average 100 flights
-% altitudes = []
-% figure()
-% hold on
-% tic
-% for ii = 1:10
-%     [t,y] = ode45(@(t,y) differentialEquation(t,y,Rocket, Atmos), tspan, x0)
-%     %Plot altitude
-%     plot(t,y(:,3).*3.28084);   
-%     altitudes(ii)=max(y(:,3))*3.28084;
-% end
-% toc
-% xlabel('Flight Time (s)');
-% ylabel('Altitude (ft)')
-% for ii = 1:10
-%     fprintf('Altitude #%g: %g ft \n',ii,altitudes(ii))
-% end
-% fprintf('Mean Altitudes: %g ft',mean(altitudes))
+altitudes = [];
+figure();
+eval(['parameter = ' parameterName ';']);
+lowerParameter = parameter*(1 - deviation);
+upperParameter = parameter*(1 + deviation);
+varyingValues = linspace(lowerParameter,upperParameter,samples);
+legendValues = [];
+for ii = 1:samples
+    currentValue = varyingValues(ii);
+    eval(strcat(parameterName,' = ',string(currentValue),';'));
+    x0 = [0;0;0;0;Rocket.mass_propellant;Atmos.windspeed;Rocket.launch_angle;0];     %initial conditions
+    [t,y] = ode45(@(t,y) differentialEquation(t,y,Rocket, Atmos), tspan, x0);
+    %Plot flight profiles
+    plot(t,y(:,3));  
+    hold on;
+    altitudes(ii)=max(y(:,3));
+    legendValues = [legendValues strcat(parameterName, ':', string(varyingValues(ii)), ' (MKGS)')];
+end
+hold off;
+xlabel('Flight Time (s)');
+ylabel('Altitude (m)');
+legend(legendValues);
+
+figure();
+plot(varyingValues,altitudes);
+xlabel([parameterName ' (MKGS)']);
+ylabel('Apogee (m)');
+
+else
+fprintf('Invalid Input\n');
+end
