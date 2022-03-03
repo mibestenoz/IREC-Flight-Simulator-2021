@@ -217,9 +217,9 @@ elseif mode == 2
 %% 
 %Sensitivity Analysis
 tspan = [0:0.1:300];                                                                %simulation time span (s)
-deviation = .5;                                                                     %fraction deviation from nominal value
-parameterName = 'Rocket.ft';                                                        %name of varying parameter
-samples = 5;                                                                        %number of sample values tested
+deviation = input('Percent Deviation from Nominal Value?\n')/100;                   %percent deviation from nominal value
+parameterName = input('Varying Parameter Name?\n','s');                             %name of varying parameter
+samples = input('Number of Parameter Samples?\n');                                  %number of sample values tested
 
 altitudes = [];
 figure();
